@@ -296,7 +296,7 @@ def start():
     config = '../resources/data/yolov4.cfg'
 
     images = ImageComputerVision.load_images_from_dir('../resources/fotos_teste')
-    labels_to_count = ['cat', 'dog']
+    labels_to_count = ['cat', 'truck']
     cv = ImageComputerVision(labels, weights, config, labels_to_count=labels_to_count)
     for img in images:
         try:
@@ -306,7 +306,8 @@ def start():
         else:
             print('Tempo de processamento: {:.2f} seg.'.format(cv.elapsed_time))
             print(cv.labels_founded_in_image)
-            cv.show_image(cv.image)
+            if cv.labels_founded_in_image:
+                cv.show_image(cv.image)
 
     print('Encontrados: ', ', '.join(labels_to_count), cv.labels_found)
     print(cv.labels_counted)
