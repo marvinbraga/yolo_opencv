@@ -35,6 +35,18 @@ class AbstractComputerVision(metaclass=ABCMeta):
         """ This method saves the predicted result in a file. """
         pass
 
+    @property
+    @abstractmethod
+    def output(self):
+        """  This method gets the output image.  """
+        pass
+
+    @property
+    @abstractmethod
+    def elapsed_time(self):
+        """ This method returns the elapsed time from execution. """
+        pass
+
 
 class ImageComputerVision(AbstractComputerVision):
     """ Class to execute computer vision tasks with Yolo4 and OpenCV. """
@@ -135,6 +147,11 @@ class ImageComputerVision(AbstractComputerVision):
         return self
 
     @property
+    def output(self):
+        """  This method gets the output image.  """
+        return self._image
+
+    @property
     def elapsed_time(self):
         """ This method returns the elapsed time from execution. """
         return self._elapsed_time
@@ -180,6 +197,7 @@ def start():
     cv = ImageComputerVision(labels, weights, config)
     cv.set_image(img).execute().get_output().save_to_file()
     print('Tempo de processamento: {:.2f} seg.'.format(cv.elapsed_time))
+    cv.show_image(cv.image)
 
 
 if __name__ == '__main__':
