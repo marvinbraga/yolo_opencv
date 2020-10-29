@@ -267,13 +267,13 @@ class ImageComputerVision(AbstractComputerVision):
                     # Found in images
                     self._labels_to_count[label] += 1
                     self._total_labels_found += 1
-                # Make boxes.
-                (x, y) = (self._boxes[i][0], self._boxes[i][1])
-                (w, h) = (self._boxes[i][2], self._boxes[i][3])
-                color = [int(c) for c in self._colors[self._id_classes[i]]]
-                cv2.rectangle(self._image, (x, y), (x + w, y + h), color, 2)
-                texto = '{}: {:.4f}'.format(label, self._assurances[i])
-                cv2.putText(self._image, texto, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    # Make boxes.
+                    (x, y) = (self._boxes[i][0], self._boxes[i][1])
+                    (w, h) = (self._boxes[i][2], self._boxes[i][3])
+                    color = [int(c) for c in self._colors[self._id_classes[i]]]
+                    cv2.rectangle(self._image, (x, y), (x + w, y + h), color, 2)
+                    texto = '{}: {:.4f}'.format(label, self._assurances[i])
+                    cv2.putText(self._image, texto, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         return self
 
     def save_to_file(self, file_name='result.jpg'):
@@ -296,7 +296,7 @@ def start():
     config = '../resources/data/yolov4.cfg'
 
     images = ImageComputerVision.load_images_from_dir('../resources/fotos_teste')
-    labels_to_count = ['cat', 'truck']
+    labels_to_count = ['horse', 'truck']
     cv = ImageComputerVision(labels, weights, config, labels_to_count=labels_to_count)
     for img in images:
         try:
