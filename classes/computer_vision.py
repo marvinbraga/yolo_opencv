@@ -65,13 +65,25 @@ class AbstractComputerVision(metaclass=ABCMeta):
         """ This method returns the labels found count. """
         pass
 
+    @property
+    @abstractmethod
+    def labels_founded_in_image(self):
+        """ This method returns the labels found in image. """
+        pass
+
+    @property
+    @abstractmethod
+    def labels_counted(self):
+        """ This method returns the labels counted. """
+        pass
+
 
 class ImageComputerVision(AbstractComputerVision):
     """ Class to execute computer vision tasks with Yolo4 and OpenCV. """
 
     def __init__(self, labels_file_name, weights_file_name, config_file_name, threshold=0.7, threshold_nns=0.3,
                  labels_to_count=None):
-        self._labels_to_count = labels_to_count
+        self._get_labels_to_count(labels_to_count)
         self._total_labels_found = 0
         # Removing shared boxes with low probability (NO-MAX-SUPPRESSION).
         self._threshold_nns = threshold_nns
@@ -81,6 +93,7 @@ class ImageComputerVision(AbstractComputerVision):
         self._weights_file_name = weights_file_name
         self._labels_file_name = labels_file_name
         # Other properties.
+        self._labels_found_in_image = None
         self._outputs = None
         self._net = None
         self._colors = None
@@ -96,6 +109,7 @@ class ImageComputerVision(AbstractComputerVision):
 
     def _clear(self):
         """ Clear properties values. """
+        self._labels_found_in_image = None
         self._outputs = None
         self._net = None
         self._colors = None
@@ -132,6 +146,16 @@ class ImageComputerVision(AbstractComputerVision):
     def labels_found(self):
         """ This method returns the labels found count. """
         return self._total_labels_found
+
+    @property
+    def labels_founded_in_image(self):
+        """ This method returns the labels found in image. """
+        return self._labels_found_in_image
+
+    @property
+    def labels_counted(self):
+        """ This method returns the labels counted. """
+        return self._labels_to_count
 
     @property
     def image(self):
@@ -173,6 +197,7 @@ class ImageComputerVision(AbstractComputerVision):
         This method gets predict results.
         :return: self.
         """
+        # TODO: Reduzir método.
         (h, w) = self._image.shape[:2]
         # Getting information results...
         for output in self._layer_outputs:
@@ -241,11 +266,18 @@ class ImageComputerVision(AbstractComputerVision):
 
     def _make_results(self):
         """ This method create boxes in image. """
+        # TODO: Reduzir método.
         if len(self._outputs) > 0:
             for i in self._outputs.flatten():
                 # Verify labels.
                 label = self._labels[self._id_classes[i]]
-                if self._labels_to_count and label in self._labels_to_count:
+                if self._labels_to_count.get(label) is not None:
+                    # Found in image
+                    if self._labels_found_in_image is None:
+                        self._labels_found_in_image = {label: 0}
+                    self._labels_found_in_image[label] += 1
+                    # Found in images
+                    self._labels_to_count[label] += 1
                     self._total_labels_found += 1
                 # Make boxes.
                 (x, y) = (self._boxes[i][0], self._boxes[i][1])
@@ -261,6 +293,13 @@ class ImageComputerVision(AbstractComputerVision):
         cv2.imwrite(file_name, self._image)
         return self
 
+    def _get_labels_to_count(self, labels_to_count):
+        if labels_to_count:
+            self._labels_to_count = {}
+            for label in labels_to_count:
+                self._labels_to_count[label] = 0
+        return self
+
 
 def start():
     """ Initiate a test. """
@@ -269,7 +308,7 @@ def start():
     config = '../resources/data/yolov4.cfg'
 
     images = ImageComputerVision.load_images_from_dir('../resources/fotos_teste')
-    labels_to_count = ['cat']
+    labels_to_count = ['cat', 'dog']
     cv = ImageComputerVision(labels, weights, config, labels_to_count=labels_to_count)
     for img in images:
         try:
@@ -278,9 +317,11 @@ def start():
             print(e.message, img)
         else:
             print('Tempo de processamento: {:.2f} seg.'.format(cv.elapsed_time))
+            print(cv.labels_founded_in_image)
             cv.show_image(cv.image)
 
-    print('Encontrados: ', labels_to_count, cv.labels_found)
+    print('Encontrados: ', ', '.join(labels_to_count), cv.labels_found)
+    print(cv.labels_counted)
 
 
 if __name__ == '__main__':
