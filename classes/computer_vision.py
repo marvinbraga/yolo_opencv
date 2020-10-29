@@ -259,7 +259,8 @@ class ImageComputerVision(AbstractComputerVision):
             for i in self._outputs.flatten():
                 # Verify labels.
                 label = self._labels[self._id_classes[i]]
-                if self._labels_to_count.get(label) is not None:
+                found_label = self._labels_to_count.get(label)
+                if found_label is not None:
                     # Found in image
                     if self._labels_found_in_image is None:
                         self._labels_found_in_image = {label: 0}
@@ -267,6 +268,7 @@ class ImageComputerVision(AbstractComputerVision):
                     # Found in images
                     self._labels_to_count[label] += 1
                     self._total_labels_found += 1
+                if len(self._labels_to_count) == 0 or found_label is not None:
                     # Make boxes.
                     (x, y) = (self._boxes[i][0], self._boxes[i][1])
                     (w, h) = (self._boxes[i][2], self._boxes[i][3])
@@ -282,8 +284,8 @@ class ImageComputerVision(AbstractComputerVision):
         return self
 
     def _get_labels_to_count(self, labels_to_count):
+        self._labels_to_count = {}
         if labels_to_count:
-            self._labels_to_count = {}
             for label in labels_to_count:
                 self._labels_to_count[label] = 0
         return self
@@ -296,8 +298,8 @@ def start():
     config = '../resources/data/yolov4.cfg'
 
     images = ImageComputerVision.load_images_from_dir('../resources/fotos_teste')
-    labels_to_count = ['horse', 'truck']
-    cv = ImageComputerVision(labels, weights, config, labels_to_count=labels_to_count)
+    labels_to_count = ['laptop', 'person']
+    cv = ImageComputerVision(labels, weights, config, threshold=0.5, labels_to_count=labels_to_count)
     for img in images:
         try:
             cv.set_image(img).execute().get_output().save_to_file()
@@ -306,7 +308,7 @@ def start():
         else:
             print('Tempo de processamento: {:.2f} seg.'.format(cv.elapsed_time))
             print(cv.labels_founded_in_image)
-            if cv.labels_founded_in_image:
+            if len(labels_to_count) == 0 or cv.labels_founded_in_image:
                 cv.show_image(cv.image)
 
     print('Encontrados: ', ', '.join(labels_to_count), cv.labels_found)
