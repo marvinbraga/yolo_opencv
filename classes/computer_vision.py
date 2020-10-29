@@ -93,19 +93,7 @@ class ImageComputerVision(AbstractComputerVision):
         self._weights_file_name = weights_file_name
         self._labels_file_name = labels_file_name
         # Other properties.
-        self._labels_found_in_image = None
-        self._outputs = None
-        self._net = None
-        self._colors = None
-        self._layers_names = None
-        self._output_layers_names = None
-        self._layer_outputs = None
-        self._image = None
-        self._image_copy = None
-        self._elapsed_time = None
-        self._boxes = []
-        self._assurances = []
-        self._id_classes = []
+        self._clear()
 
     def _clear(self):
         """ Clear properties values. """
