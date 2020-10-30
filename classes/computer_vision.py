@@ -21,7 +21,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-from classes.exceptions import ExceptionImageFileNotFound
+from classes.image_managers.exceptions import ImageFileNotFound
 
 
 class AbstractComputerVision(metaclass=ABCMeta):
@@ -78,7 +78,35 @@ class AbstractComputerVision(metaclass=ABCMeta):
         pass
 
 
-class ImageComputerVision(AbstractComputerVision):
+class ImageBox:
+    """ Create a box in the image. """
+
+    def __init__(self, image, color, label, assurance, position, size):
+        self._size = size
+        self._position = position
+        self._assurance = assurance
+        self._label = label
+        self._color = color
+        self._image = image
+
+    def make(self):
+        """ This method create a box. """
+        x = self._position[0]
+        y = self._position[1]
+        background = np.full(self._image.shape, (0, 0, 0), dtype=np.uint8)
+        text = '{}: {:.4f}'.format(self._label, self._assurance)
+        cv2.putText(background, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+        fx, fy, fw, fh = cv2.boundingRect(background[:, :, 2])
+        cv2.rectangle(self._image, self._position, self._size, self._color, 2)
+
+        cv2.rectangle(self._image, (fx, fy), (fx + fw, fy + fh), self._color, -1)
+        cv2.rectangle(self._image, (fx, fy), (fx + fw, fy + fh), self._color, 3)
+        cv2.putText(self._image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+        return self
+
+
+class ImageObjectsDetect(AbstractComputerVision):
     """ Class to execute computer vision tasks with Yolo4 and OpenCV. """
 
     def __init__(self, labels_file_name, weights_file_name, config_file_name, threshold=0.7, threshold_nns=0.3,
@@ -120,7 +148,7 @@ class ImageComputerVision(AbstractComputerVision):
             self._get_labels()._get_weights()
             self._image = cv2.imread(image_file_name)
         except FileNotFoundError:
-            raise ExceptionImageFileNotFound()
+            raise ImageFileNotFound()
         else:
             self._image_copy = self._image.copy()
         return self
@@ -273,9 +301,7 @@ class ImageComputerVision(AbstractComputerVision):
                     (x, y) = (self._boxes[i][0], self._boxes[i][1])
                     (w, h) = (self._boxes[i][2], self._boxes[i][3])
                     color = [int(c) for c in self._colors[self._id_classes[i]]]
-                    cv2.rectangle(self._image, (x, y), (x + w, y + h), color, 2)
-                    texto = '{}: {:.4f}'.format(label, self._assurances[i])
-                    cv2.putText(self._image, texto, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                    ImageBox(self._image, color, label, self._assurances[i], (x, y), (x + w, y + h)).make()
         return self
 
     def save_to_file(self, file_name='result.jpg'):
@@ -297,13 +323,13 @@ def start():
     labels = '../resources/data/coco.names'
     config = '../resources/data/yolov4.cfg'
 
-    images = ImageComputerVision.load_images_from_dir('../resources/fotos_teste')
-    labels_to_count = ['laptop', 'person']
-    cv = ImageComputerVision(labels, weights, config, threshold=0.5, labels_to_count=labels_to_count)
+    images = ImageObjectsDetect.load_images_from_dir('../resources/fotos_teste')
+    labels_to_count = []
+    cv = ImageObjectsDetect(labels, weights, config, threshold=0.5, labels_to_count=labels_to_count)
     for img in images:
         try:
             cv.set_image(img).execute().get_output().save_to_file()
-        except ExceptionImageFileNotFound as e:
+        except ImageFileNotFound as e:
             print(e.message, img)
         else:
             print('Tempo de processamento: {:.2f} seg.'.format(cv.elapsed_time))

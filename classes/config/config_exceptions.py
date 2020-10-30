@@ -14,25 +14,13 @@ Marvin Computer Vision Framework, 2020
 Marcus Vinicius Braga.
 """
 
-
-class ExceptionBaseComputerVision(Exception):
-    """ Base class to exceptions. """
-    def __init__(self, message=None):
-        super().__init__(message)
-        self._message = message
-        if self._message is None:
-            self._message = 'Base Computer Vison exception is raised.'
-
-    @property
-    def message(self):
-        """ Return message property. """
-        return self._message
+from classes.core.exceptions import ExceptionBaseComputerVision
 
 
-class ExceptionImageFileNotFound(ExceptionBaseComputerVision):
-    """ Exception to Image not found. """
-    def __init__(self, message=None):
+class InvalidHiperParamValue(ExceptionBaseComputerVision):
+    """ Exception to config invalid value. """
+    def __init__(self, value, message=None):
         message = message
         if message is None:
-            message = 'Image file not found.'
+            message = f'This value "{value}" is invalid to hiper params.'
         super().__init__(message=message)
