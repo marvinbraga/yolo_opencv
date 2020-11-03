@@ -52,4 +52,4 @@ class ImageObjectsDetect(AbstractComputerVision):
 
     def get_report(self):
         """ This method returns the report of execution. """
-        pass
+        return None if self._report is None else self._report.output

@@ -21,6 +21,64 @@ from classes.computer_vision.image_boxes_clss import ImageBox
 from classes.computer_vision.yolo import AbstractYolo
 
 
+class ResizeImage:
+    """ Class to resize an image. """
+    def __init__(self, image):
+        self._image = image
+
+    def execute(self, max_width=600):
+        """ This method adjusts the image size if its width is greater than 600. """
+        image = self._image
+        if image.shape[1] > max_width:
+            height = int(max_width / (image.shape[1] / image.shape[0]))
+            self._image = cv2.resize(image, (max_width, height))
+        return self
+
+    @property
+    def output(self):
+        """ Image adjusted. """
+        return self._image
+
+
+class BoxDetect:
+    """ Class to detect image. """
+    def __init__(self, threshold, image, scores, position, classe_id, confidence, boxes, assurances, id_classes):
+        self._id_classes = id_classes
+        self._assurances = assurances
+        self._boxes = boxes
+        self._confidence = confidence
+        self._classe_id = classe_id
+        self._position = position
+        self._scores = scores
+        self._image = image
+        self._threshold = threshold
+
+    def _check(self):
+        """
+        This method checks whether a class has been found.
+        :return: True/False.
+        """
+        return self._confidence > self._threshold
+
+    def execute(self):
+        """
+        This method the rules of verification and association.
+        :return: Self.
+        """
+        if self._check():
+            (h, w) = self._image.shape[:2]
+            # Creating the detection box.
+            box = self._position * np.array([w, h, w, h])
+            (centerX, centerY, width, height) = box.astype('int')
+            x = int(centerX - (width / 2))
+            y = int(centerY - (height / 2))
+            # Saving the detection values.
+            self._boxes.append([x, y, int(width), int(height)])
+            self._assurances.append(float(self._confidence))
+            self._id_classes.append(self._classe_id)
+        return self
+
+
 class Yolo(AbstractYolo):
     """ This class implements Yolo with OpenCV. """
 
@@ -63,7 +121,7 @@ class Yolo(AbstractYolo):
         """ This method execute the process to detect labels in image """
         start_time = time()
         try:
-            self._resize_image()
+            self._image = ResizeImage(self._image).execute().output
             # Converting the image to blob.
             blob = cv2.dnn.blobFromImage(self._image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
             # Send image to RN.
@@ -73,14 +131,6 @@ class Yolo(AbstractYolo):
         finally:
             finish_time = time()
             self._elapsed_time = finish_time - start_time
-        return self
-
-    def _resize_image(self, max_width=600):
-        """ This method adjusts the image size if its width is greater than 600. """
-        image = self._image
-        if image.shape[1] > max_width:
-            height = int(max_width / (image.shape[1] / image.shape[0]))
-            self._image = cv2.resize(image, (max_width, height))
         return self
 
     def get_output(self):
@@ -93,24 +143,15 @@ class Yolo(AbstractYolo):
         This method gets predict results.
         :return: self.
         """
-        # TODO: Reduzir método.
-        (h, w) = self._image.shape[:2]
         # Getting information results...
         for output in self._layer_outputs:
             for detection in output:
                 scores = detection[5:]
                 classe_id = np.argmax(scores)
                 confidence = scores[classe_id]
-                if confidence > self._hiper_params.threshold:
-                    # Creating the detection box.
-                    box = detection[0:4] * np.array([w, h, w, h])
-                    (centerX, centerY, width, height) = box.astype('int')
-                    x = int(centerX - (width / 2))
-                    y = int(centerY - (height / 2))
-                    # Saving the detection values.
-                    self._boxes.append([x, y, int(width), int(height)])
-                    self._assurances.append(float(confidence))
-                    self._id_classes.append(classe_id)
+                BoxDetect(self._hiper_params.threshold, self._image,
+                          scores, detection[0:4], classe_id, confidence,
+                          self._boxes, self._assurances, self._id_classes).execute()
         return self
 
     def _get_objects(self):
@@ -124,16 +165,17 @@ class Yolo(AbstractYolo):
 
     def _make_results(self):
         """ This method create boxes in image. """
-        # TODO: Reduzir método.
         if len(self._outputs) > 0:
             for i in self._outputs.flatten():
                 # Verify labels.
                 label = self._config.labels[self._id_classes[i]]
-                # Make boxes.
-                (x, y) = (self._boxes[i][0], self._boxes[i][1])
-                (w, h) = (self._boxes[i][2], self._boxes[i][3])
-                color = [int(c) for c in self._config.colors[self._id_classes[i]]]
-                ImageBox(self._image, color, label, self._assurances[i], (x, y), (x + w, y + h)).make()
+                check = True if self._report is None else self._report.generate_report(label).was_label_found()
+                if check:
+                    # Make boxes.
+                    (x, y) = (self._boxes[i][0], self._boxes[i][1])
+                    (w, h) = (self._boxes[i][2], self._boxes[i][3])
+                    color = [int(c) for c in self._config.colors[self._id_classes[i]]]
+                    ImageBox(self._image, color, label, self._assurances[i], (x, y), (x + w, y + h)).make()
         return self
 
     @staticmethod

@@ -74,23 +74,23 @@ pelo YOLO4 com OpenCV e fornecer o resultado de seu processamento.
 
 ###### Properties:
 
-####### output:
+- **output**:
 Esta propriedade retorna uma **lista que contém itens de dicionário** formado pelo _nome do arquivo_ de 
 imagem e a _própria imagem_ já como _dado do OpenCV_. 
 Ex.: [{'file_name': Nome da imagem, 'data': dado do OpenCV}]
 
-####### output_in_base64:
+- **output_in_base64**:
 Esta propriedade retorna uma **lista que contém itens de dicionário** formado pelo _nome do arquivo_ de 
 imagem e a _própria imagem_ já no formato de _string base64_. 
 Ex.: [{'file_name': Nome da imagem, 'data': Imagem em string base64}]
 
-####### output_in_bytes:
+- **output_in_bytes**:
 Esta propriedade retorna uma **lista que contém itens de dicionário** formado pelo _nome do arquivo_ de 
 imagem e a _própria imagem_ já no formato de _bytes_. 
 Ex.: [{'file_name': Nome da imagem, 'data': Imagem em bytes}]
 
 ###### Methods:
-####### save_in_files:
+- **save_in_files**:
 Este método salva em arquivo as imagens constantes na propriedade **output**.
 
 ### Gerador de Relatório
@@ -98,7 +98,7 @@ Este método salva em arquivo as imagens constantes na propriedade **output**.
 ##### AbstractImageReport
 
 ###### Properties:
-####### report:
+- **report**:
 Esta propriedade retorna uma **lista que contém itens de dicionário** formado pelo _nome do arquivo_ de 
 imagem e a _lista_ com informações coletadas no processamento. 
 Ex.: [{'file_name': Nome da imagem, 'report': [{'label': Nome do Label, 'count': Quantidade de vezes que 

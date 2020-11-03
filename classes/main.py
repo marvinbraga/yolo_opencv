@@ -17,6 +17,7 @@ from classes.computer_vision.computer_vision_clss import ImageObjectsDetect
 from classes.config.yolo_data_clss import YoloConfig
 from classes.config.yolo_hiper_params_clss import YoloHiperParams
 from classes.image_managers.factories import FactoryImageManager
+from classes.report.factory import FactoryReport
 
 if __name__ == '__main__':
     weights = '../resources/data/yolov4.weights'
@@ -24,8 +25,9 @@ if __name__ == '__main__':
     config = '../resources/data/yolov4.cfg'
     input_path = '../resources/fotos_teste'
     output_path = '../resources/results'
-    ImageObjectsDetect(
+    print(ImageObjectsDetect(
         config=YoloConfig(labels, config, weights),
         hiper_params=YoloHiperParams(),
-        file_manager=FactoryImageManager.PATH.new_instance([input_path])
-    ).execute().save_to_file(path=output_path)
+        file_manager=FactoryImageManager.PATH.new_instance([input_path]),
+        report=FactoryReport.LABELS_TO_COUNT.new_instance(['dog', 'cat'])
+    ).execute().save_to_file(path=output_path).get_report())
