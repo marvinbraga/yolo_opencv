@@ -181,5 +181,4 @@ class Yolo(AbstractYolo):
     @staticmethod
     def _check_negative(value):
         """ This method adjusts the value if it is less than zero. """
-        result = 0 if value < 0 else value
-        return result
+        return 0 if value < 0 else value
