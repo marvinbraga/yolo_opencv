@@ -17,66 +17,10 @@ import cv2
 import numpy as np
 from time import time
 
+from classes.computer_vision.box_detect_clss import BoxDetect
 from classes.computer_vision.image_boxes_clss import ImageBox
+from classes.computer_vision.image_resize_clss import ResizeImage
 from classes.computer_vision.yolo import AbstractYolo
-
-
-class ResizeImage:
-    """ Class to resize an image. """
-    def __init__(self, image):
-        self._image = image
-
-    def execute(self, max_width=600):
-        """ This method adjusts the image size if its width is greater than 600. """
-        image = self._image
-        if image.shape[1] > max_width:
-            height = int(max_width / (image.shape[1] / image.shape[0]))
-            self._image = cv2.resize(image, (max_width, height))
-        return self
-
-    @property
-    def output(self):
-        """ Image adjusted. """
-        return self._image
-
-
-class BoxDetect:
-    """ Class to detect image. """
-    def __init__(self, threshold, image, scores, position, classe_id, confidence, boxes, assurances, id_classes):
-        self._id_classes = id_classes
-        self._assurances = assurances
-        self._boxes = boxes
-        self._confidence = confidence
-        self._classe_id = classe_id
-        self._position = position
-        self._scores = scores
-        self._image = image
-        self._threshold = threshold
-
-    def _check(self):
-        """
-        This method checks whether a class has been found.
-        :return: True/False.
-        """
-        return self._confidence > self._threshold
-
-    def execute(self):
-        """
-        This method the rules of verification and association.
-        :return: Self.
-        """
-        if self._check():
-            (h, w) = self._image.shape[:2]
-            # Creating the detection box.
-            box = self._position * np.array([w, h, w, h])
-            (centerX, centerY, width, height) = box.astype('int')
-            x = int(centerX - (width / 2))
-            y = int(centerY - (height / 2))
-            # Saving the detection values.
-            self._boxes.append([x, y, int(width), int(height)])
-            self._assurances.append(float(self._confidence))
-            self._id_classes.append(self._classe_id)
-        return self
 
 
 class Yolo(AbstractYolo):
@@ -160,7 +104,7 @@ class Yolo(AbstractYolo):
         :return: self.
         """
         self._outputs = cv2.dnn.NMSBoxes(
-            self._boxes, self._assurances, self._hiper_params.threshold, self._hiper_params.threshold_nns)
+            self._boxes, self._assurances, self._hiper_params.threshold, self._hiper_params.threshold_nms)
         return self
 
     def _make_results(self):
@@ -169,7 +113,9 @@ class Yolo(AbstractYolo):
             for i in self._outputs.flatten():
                 # Verify labels.
                 label = self._config.labels[self._id_classes[i]]
-                check = True if self._report is None else self._report.generate_report(label).was_label_found()
+                check = True
+                if self._report is not None:
+                    check = self._report.generate_report(label).was_label_found()
                 if check:
                     # Make boxes.
                     (x, y) = (self._boxes[i][0], self._boxes[i][1])
@@ -177,8 +123,3 @@ class Yolo(AbstractYolo):
                     color = [int(c) for c in self._config.colors[self._id_classes[i]]]
                     ImageBox(self._image, color, label, self._assurances[i], (x, y), (x + w, y + h)).make()
         return self
-
-    @staticmethod
-    def _check_negative(value):
-        """ This method adjusts the value if it is less than zero. """
-        return 0 if value < 0 else value

@@ -13,26 +13,16 @@ complete source code of the modified version must be made available.
 Marvin Computer Vision Framework, 2020
 Marcus Vinicius Braga.
 """
-from abc import ABCMeta, abstractmethod
+from classes.core.abstract_activation import AbstractActivation
 
 
-class AbstractYoloHiperParams(metaclass=ABCMeta):
-    """ Interface to config hiper params. """
+class ActivationNegative(AbstractActivation):
+    """ Class to calculate activation negative function. """
 
-    @property
-    @abstractmethod
-    def threshold_nms(self):
+    def execute(self, value) -> float:
         """
-        This property returns the value of _threshold_nms.
-        :return: _threshold_nms
+        This method calculate the activation value.
+        :param value: Value to verify.
+        :return: Float activation value.
         """
-        pass
-
-    @property
-    @abstractmethod
-    def threshold(self):
-        """
-        This property returns the value of _threshold.
-        :return: _threshold
-        """
-        pass
+        return 0.0 if value < 0 else float(value)

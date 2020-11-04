@@ -18,16 +18,23 @@ from classes.config.yolo_data_clss import YoloConfig
 from classes.config.yolo_hiper_params_clss import YoloHiperParams
 from classes.image_managers.factories import FactoryImageManager
 from classes.report.factory import FactoryReport
+from classes.video_managers.file_clss import FileVideoManager
 
 if __name__ == '__main__':
     weights = '../resources/data/yolov4.weights'
     labels = '../resources/data/coco.names'
     config = '../resources/data/yolov4.cfg'
-    input_path = '../resources/fotos_teste'
     output_path = '../resources/results'
-    print(ImageObjectsDetect(
-        config=YoloConfig(labels, config, weights),
-        hiper_params=YoloHiperParams(),
-        file_manager=FactoryImageManager.PATH.new_instance([input_path]),
-        report=FactoryReport.LABELS_TO_COUNT.new_instance(['dog', 'cat'])
-    ).execute().save_to_file(path=output_path).get_report())
+    # input_path = '../resources/fotos_teste'
+    # Image detect.
+    # print(ImageObjectsDetect(
+    #     config=YoloConfig(labels, config, weights),
+    #     hiper_params=YoloHiperParams(),
+    #     file_manager=FactoryImageManager.PATH.new_instance([input_path]),
+    #     report=FactoryReport.LABELS_TO_COUNT.new_instance(['dog', 'cat'])
+    # ).execute().save_to_file(path=output_path).get_report())
+    # Video detect.
+    input_path = '../resources/videos/20201011_130632.mp4'
+    FileVideoManager(
+        file_name=input_path, config=YoloConfig(labels, config, weights), hiper_params=YoloHiperParams()
+    ).execute()

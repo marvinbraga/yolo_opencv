@@ -22,9 +22,9 @@ from classes.config.yolo_hiper_params import AbstractYoloHiperParams
 class YoloHiperParams(AbstractYoloHiperParams):
     """ Class to config hiper params. """
 
-    def __init__(self, threshold=0.5, threshold_nns=0.3):
+    def __init__(self, threshold=0.5, threshold_nms=0.3):
         # Removing shared boxes with low probability (NO-MAX-SUPPRESSION).
-        self._threshold_nns = threshold_nns
+        self._threshold_nms = threshold_nms
         # Defining the level of certainty for the placement of boxes.
         self._threshold = threshold
         self._check()
@@ -32,17 +32,17 @@ class YoloHiperParams(AbstractYoloHiperParams):
     def _check(self):
         """ Execute validations. """
         ConfigValidations(
-            validations=[InvalidValueValidation(value=v) for v in (self._threshold_nns, self._threshold)]
+            validations=[InvalidValueValidation(value=v) for v in (self._threshold_nms, self._threshold)]
         ).execute()
         return self
 
     @property
-    def threshold_nns(self):
+    def threshold_nms(self):
         """
-        This property returns the value of _threshold_nns.
-        :return: _threshold_nns
+        This property returns the value of _threshold_nms.
+        :return: _threshold_nms
         """
-        return self._threshold_nns
+        return self._threshold_nms
 
     @property
     def threshold(self):

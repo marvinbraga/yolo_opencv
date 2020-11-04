@@ -13,26 +13,23 @@ complete source code of the modified version must be made available.
 Marvin Computer Vision Framework, 2020
 Marcus Vinicius Braga.
 """
-from abc import ABCMeta, abstractmethod
+import cv2
 
 
-class AbstractYoloHiperParams(metaclass=ABCMeta):
-    """ Interface to config hiper params. """
+class ResizeImage:
+    """ Class to resize an image. """
+    def __init__(self, image):
+        self._image = image
+
+    def execute(self, max_width=600):
+        """ This method adjusts the image size if its width is greater than 600. """
+        image = self._image
+        if image.shape[1] > max_width:
+            height = int(max_width / (image.shape[1] / image.shape[0]))
+            self._image = cv2.resize(image, (max_width, height))
+        return self
 
     @property
-    @abstractmethod
-    def threshold_nms(self):
-        """
-        This property returns the value of _threshold_nms.
-        :return: _threshold_nms
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def threshold(self):
-        """
-        This property returns the value of _threshold.
-        :return: _threshold
-        """
-        pass
+    def output(self):
+        """ Image adjusted. """
+        return self._image

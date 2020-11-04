@@ -16,23 +16,13 @@ Marcus Vinicius Braga.
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractYoloHiperParams(metaclass=ABCMeta):
-    """ Interface to config hiper params. """
-
-    @property
+class AbstractActivation(metaclass=ABCMeta):
+    """ Interface to activation functions. """
     @abstractmethod
-    def threshold_nms(self):
+    def execute(self, value) -> float:
         """
-        This property returns the value of _threshold_nms.
-        :return: _threshold_nms
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def threshold(self):
-        """
-        This property returns the value of _threshold.
-        :return: _threshold
+        This method calculate the activation value.
+        :param value: Value to verify.
+        :return: Float activation value.
         """
         pass
