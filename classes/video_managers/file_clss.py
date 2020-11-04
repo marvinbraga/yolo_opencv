@@ -15,37 +15,19 @@ Marcus Vinicius Braga.
 """
 import os
 import time
-from enum import Enum
 from typing import final
 import cv2
 import matplotlib.pyplot as plt
 
 from classes.computer_vision.yolo_clss import Yolo
-
-
-class VideoCodec(Enum):
-    """ Classification of video codecs. """
-    AVI = 0, *'XVID'
-    MP4 = 1, *'MP4V'
-    MJPG = 2, *'MJPG'
-    DIVX = 3, *'DIVX'
-    X264 = 4, *'X264'
-
-    def codec(self) -> tuple:
-        """
-        Returns codec tuple.
-        :return: Tuple.
-        """
-        return self.value[1:]
+from classes.config.video_codec_clss import VideoCodec
 
 
 @final
 class ResizeVideo:
     """ Class to resize video. """
-    def __init__(self, video, max_width=600, fps=24, codec=VideoCodec.AVI):
-        self._fps = fps
-        self._codec = codec
-        self._max_width = max_width
+    def __init__(self, video, video_params):
+        self._video_params = video_params
         self._video = video
         self._width = 0
         self._height = 0
@@ -73,8 +55,8 @@ class ResizeVideo:
         :return:
         """
         self.resize()
-        fourcc = cv2.VideoWriter_fourcc(*self._codec.codec())
-        self._output = cv2.VideoWriter(file_name, fourcc, self._fps, (self._width, self._height))
+        fourcc = cv2.VideoWriter_fourcc(*self._video_params.codec.codec())
+        self._output = cv2.VideoWriter(file_name, fourcc, self._video_params.fps, (self._width, self._height))
         return self
 
     def resize(self):
@@ -83,9 +65,9 @@ class ResizeVideo:
         :return: self.
         """
         self._height, self._width, _ = self._video.shape
-        if self._width > self._max_width:
+        if self._width > self._video_params.max_width:
             prop = self._width / self._height
-            self._width = self._max_width
+            self._width = self._video_params.max_width
             self._height = int(self._width / prop)
         return self
 
@@ -98,7 +80,10 @@ class FileVideoManager:
     FONT_DEFAULT_SIZE = 0.6
     FONT_NAME = cv2.FONT_HERSHEY_SIMPLEX
 
-    def __init__(self, file_name, config, hiper_params, samples_to_display=20):
+    def __init__(self, file_name, config, hiper_params, video_params, samples_to_display=20,
+                 report=None):
+        self._video_params = video_params
+        self._report = report
         self._config = config
         self._hiper_params = hiper_params
         self._file_name = file_name
@@ -115,9 +100,9 @@ class FileVideoManager:
         self._connected, self._video = self._captured.read()
         return self
 
-    def resize_output(self, file_name=None, codec=VideoCodec.AVI, fps=24):
+    def resize_output(self, file_name=None):
         """ Resize output video. """
-        resize = ResizeVideo(video=self._video, codec=codec, fps=fps).execute(file_name)
+        resize = ResizeVideo(video=self._video, video_params=self._video_params).execute(file_name)
         self._size = resize.size
         self._output = resize.output
         return self
@@ -146,6 +131,7 @@ class FileVideoManager:
         """
         self._connect().resize_output(self._output_file_name('../resources/results/'))
         try:
+            total_time = time.time()
             while cv2.waitKey(1) < 0:
                 self._connected, frame = self._captured.read()
                 if not self._connected:
@@ -155,13 +141,12 @@ class FileVideoManager:
                 try:
                     frame = cv2.resize(frame, self._size)
                     (H, W) = frame.shape[:2]
-                    yolo = Yolo('', frame, self._config, self._hiper_params)
-                    yolo.execute().get_output()
+                    Yolo('', frame, self._config, self._hiper_params, self._report).execute().get_output()
                 except Exception as e:
                     print(str(e))
                     continue
                 else:
-                    text = ' Frame processado em {:.2f}'.format(time.time() - t)
+                    text = ' Frame processado em {:.2f} segundos.'.format(time.time() - t)
                     cv2.putText(frame, text, (20, H - 20),
                                 self.FONT_NAME, self.FONT_SMALL_SIZE, (250, 250, 250), 0, lineType=cv2.LINE_AA)
                     print(text)
@@ -170,6 +155,7 @@ class FileVideoManager:
                         self._current_sample += 1
 
                     self._output.write(frame)
+                    print(' Tempo processado em {:.2f} segundos.'.format(time.time() - total_time))
 
             print('Terminou.')
             self._output.release()
