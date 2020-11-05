@@ -20,7 +20,6 @@ import cv2
 import matplotlib.pyplot as plt
 
 from classes.computer_vision.yolo_clss import Yolo
-from classes.config.video_codec_clss import VideoCodec
 
 
 @final
@@ -129,6 +128,7 @@ class FileVideoManager:
         Executes image processing.
         :return: self.
         """
+        # TODO: Reduzir este método.
         self._connect().resize_output(self._output_file_name('../resources/results/'))
         try:
             total_time = time.time()
