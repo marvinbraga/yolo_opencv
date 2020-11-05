@@ -37,9 +37,9 @@ if __name__ == '__main__':
         ).execute().save_to_file(path=output_path).get_report())
     else:
         # Video detect.
-        input_path = '../resources/videos/video_rua01.mp4'
+        file_name = '../resources/videos/video_pessoas01.mp4'
         VideoObjectsDetect(
-            file_name=input_path, config=YoloConfig(labels, config, weights), hiper_params=YoloHiperParams(),
-            video_params=YoloVideoParams(fps=60),
+            file_name=file_name, output_path=output_path, config=YoloConfig(labels, config, weights),
+            hiper_params=YoloHiperParams(), video_params=YoloVideoParams(fps=60),
             report=FactoryReport.LABELS_TO_COUNT.new_instance(['car'])
         ).execute()

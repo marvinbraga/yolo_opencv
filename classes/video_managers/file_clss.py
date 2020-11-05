@@ -79,8 +79,9 @@ class FileVideoManager:
     FONT_DEFAULT_SIZE = 0.6
     FONT_NAME = cv2.FONT_HERSHEY_SIMPLEX
 
-    def __init__(self, file_name, config, hiper_params, video_params, samples_to_display=20,
+    def __init__(self, file_name, output_path, config, hiper_params, video_params, samples_to_display=0,
                  report=None):
+        self._output_path = output_path
         self._video_params = video_params
         self._report = report
         self._config = config
@@ -129,7 +130,7 @@ class FileVideoManager:
         :return: self.
         """
         # TODO: Reduzir este método.
-        self._connect().resize_output(self._output_file_name('../resources/results/'))
+        self._connect().resize_output(self._output_file_name(self._output_path))
         try:
             total_time = time.time()
             while cv2.waitKey(1) < 0:
@@ -143,22 +144,25 @@ class FileVideoManager:
                     (H, W) = frame.shape[:2]
                     Yolo('', frame, self._config, self._hiper_params, self._report).execute().get_output()
                 except Exception as e:
-                    print(str(e))
+                    print('Error: ', str(e))
                     continue
                 else:
-                    text = ' Frame processado em {:.2f} segundos.'.format(time.time() - t)
-                    cv2.putText(frame, text, (20, H - 20),
-                                self.FONT_NAME, self.FONT_SMALL_SIZE, (250, 250, 250), 0, lineType=cv2.LINE_AA)
-                    print(text)
-                    if self._current_sample <= self._samples_to_display:
-                        # self.show_image(frame)
-                        self._current_sample += 1
-
+                    self._print_info(H, frame, t, total_time)
                     self._output.write(frame)
-                    print(' Tempo processado em {:.2f} segundos.'.format(time.time() - total_time))
 
             print('Terminou.')
             self._output.release()
         finally:
             cv2.destroyAllWindows()
+        return self
+
+    def _print_info(self, height, frame, t, total_time):
+        text = ' Frame processado em {:.2f} segundos.'.format(time.time() - t)
+        cv2.putText(frame, text, (20, height - 20),
+                    self.FONT_NAME, self.FONT_SMALL_SIZE, (250, 250, 250), 0, lineType=cv2.LINE_AA)
+        print(text)
+        if self._current_sample < self._samples_to_display:
+            self.show_image(frame)
+            self._current_sample += 1
+        print(' Tempo processado em {:.2f} segundos.'.format(time.time() - total_time))
         return self

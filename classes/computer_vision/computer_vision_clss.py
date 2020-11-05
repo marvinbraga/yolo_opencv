@@ -59,7 +59,8 @@ class ImageObjectsDetect(AbstractComputerVision):
 class VideoObjectsDetect(AbstractComputerVision):
     """ Class to execute video computer vision tasks with Yolo4 and OpenCV. """
 
-    def __init__(self, file_name, config, hiper_params, video_params, report=None):
+    def __init__(self, file_name, output_path, config, hiper_params, video_params, report=None):
+        self._output_path = output_path
         self._video_params = video_params
         self._file_name = file_name
         self._report = report
@@ -70,8 +71,8 @@ class VideoObjectsDetect(AbstractComputerVision):
     def execute(self, *args, **kwargs):
         """ This method execute the principal operation. """
         self._video_manager = FileVideoManager(
-            file_name=self._file_name, config=self._config, hiper_params=self._hiper_params,
-            video_params=self._video_params, report=self._report
+            file_name=self._file_name, output_path=self._output_path, config=self._config,
+            hiper_params=self._hiper_params, video_params=self._video_params, report=self._report
         ).execute()
         return self
 
