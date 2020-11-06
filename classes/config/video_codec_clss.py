@@ -18,11 +18,11 @@ from enum import Enum
 
 class VideoCodec(Enum):
     """ Classification of video codecs. """
-    AVI = 0, *'XVID'
-    MP4 = 1, *'MP4V'
-    MJPG = 2, *'MJPG'
-    DIVX = 3, *'DIVX'
-    X264 = 4, *'X264'
+    AVI = 0, *'xvid'
+    MP4 = 1, *'mp4v'
+    MJPG = 2, *'mjpg'
+    DIVX = 3, *'divx'
+    X264 = 4, *'x264'
 
     def codec(self) -> tuple:
         """

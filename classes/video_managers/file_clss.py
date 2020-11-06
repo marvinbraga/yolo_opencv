@@ -15,6 +15,7 @@ Marcus Vinicius Braga.
 """
 import os
 import time
+from threading import Thread, Semaphore
 from typing import final
 import cv2
 import matplotlib.pyplot as plt
@@ -25,6 +26,7 @@ from classes.computer_vision.yolo_clss import Yolo
 @final
 class ResizeVideo:
     """ Class to resize video. """
+
     def __init__(self, video, video_params):
         self._video_params = video_params
         self._video = video
@@ -94,6 +96,7 @@ class FileVideoManager:
         self._output = None
         self._current_sample = 0
         self._size = (0, 0)
+        self._semaphore = Semaphore()
 
     def _connect(self):
         self._captured = cv2.VideoCapture(self._file_name)
@@ -129,7 +132,7 @@ class FileVideoManager:
         Executes image processing.
         :return: self.
         """
-        # TODO: Reduzir este método.
+        threads = []
         self._connect().resize_output(self._output_file_name(self._output_path))
         try:
             total_time = time.time()
@@ -137,24 +140,37 @@ class FileVideoManager:
                 self._connected, frame = self._captured.read()
                 if not self._connected:
                     break
+                frame = cv2.resize(frame, self._size).copy()
+                threads.append((Thread(target=self._predict, args=(frame, total_time,)), frame))
 
-                t = time.time()
-                try:
-                    frame = cv2.resize(frame, self._size)
-                    (H, W) = frame.shape[:2]
-                    Yolo('', frame, self._config, self._hiper_params, self._report).execute().get_output()
-                except Exception as e:
-                    print('Error: ', str(e))
-                    continue
-                else:
-                    self._print_info(H, frame, t, total_time)
-                    self._output.write(frame)
+            for t, _ in threads:
+                t.start()
+
+            for t, _ in threads:
+                t.join()
+
+            for _, frame in threads:
+                self._output.write(frame)
 
             print('Terminou.')
             self._output.release()
         finally:
             cv2.destroyAllWindows()
         return self
+
+    def _predict(self, frame, total_time):
+        self._semaphore.acquire()
+        try:
+            t = time.time()
+            try:
+                Yolo('', frame, self._config, self._hiper_params, self._report).execute().get_output()
+            except Exception as e:
+                print('Error: ', str(e))
+            else:
+                (H, W) = frame.shape[:2]
+                self._print_info(H, frame, t, total_time)
+        finally:
+            self._semaphore.release()
 
     def _print_info(self, height, frame, t, total_time):
         text = ' Frame processado em {:.2f} segundos.'.format(time.time() - t)

@@ -14,6 +14,7 @@ Marvin Computer Vision Framework, 2020
 Marcus Vinicius Braga.
 """
 from classes.computer_vision.computer_vision_clss import ImageObjectsDetect, VideoObjectsDetect
+from classes.config.video_codec_clss import VideoCodec
 from classes.config.yolo_data_clss import YoloConfig
 from classes.config.yolo_hiper_params_clss import YoloHiperParams
 from classes.config.yolo_video_params_clss import YoloVideoParams
@@ -37,9 +38,9 @@ if __name__ == '__main__':
         ).execute().save_to_file(path=output_path).get_report())
     else:
         # Video detect.
-        file_name = '../resources/videos/video_pessoas01.mp4'
-        VideoObjectsDetect(
+        file_name = '../resources/videos/video_rua01.mp4'
+        print(VideoObjectsDetect(
             file_name=file_name, output_path=output_path, config=YoloConfig(labels, config, weights),
-            hiper_params=YoloHiperParams(), video_params=YoloVideoParams(fps=60),
-            report=FactoryReport.LABELS_TO_COUNT.new_instance(['car'])
-        ).execute()
+            hiper_params=YoloHiperParams(), video_params=YoloVideoParams(codec=VideoCodec.MP4, fps=60),
+            report=FactoryReport.LABELS_TO_COUNT.new_instance([])
+        ).execute().get_report())
