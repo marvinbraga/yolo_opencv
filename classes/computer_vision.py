@@ -120,6 +120,10 @@ class ImageObjectsDetect(AbstractComputerVision):
         self._config_file_name = config_file_name
         self._weights_file_name = weights_file_name
         self._labels_file_name = labels_file_name
+        self._image = None
+        self._image_copy = None
+        self._layer_outputs = None
+        self._elapsed_time = None
         # Other properties.
         self._clear()
 
@@ -224,7 +228,7 @@ class ImageObjectsDetect(AbstractComputerVision):
                 if confidence > self._threshold:
                     # Creating the detection box.
                     box = detection[0:4] * np.array([w, h, w, h])
-                    (centerX, centerY, width, height) = box.astype('int')
+                    centerX, centerY, width, height = box.astype('int')
                     x = int(centerX - (width / 2))
                     y = int(centerY - (height / 2))
                     # Saving the detection values.

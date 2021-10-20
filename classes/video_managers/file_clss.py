@@ -15,11 +15,11 @@ Marcus Vinicius Braga.
 """
 import os
 import time
-from threading import Thread, Semaphore
-from typing import final
 import cv2
 import matplotlib.pyplot as plt
 
+from typing import final
+from threading import Thread, Semaphore
 from classes.computer_vision.yolo_clss import Yolo
 
 

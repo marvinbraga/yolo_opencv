@@ -34,13 +34,16 @@ if __name__ == '__main__':
             config=YoloConfig(labels, config, weights),
             hiper_params=YoloHiperParams(),
             file_manager=FactoryImageManager.PATH.new_instance([input_path]),
-            report=FactoryReport.LABELS_TO_COUNT.new_instance(['dog', 'cat'])
+            report=FactoryReport.LABELS_TO_COUNT.new_instance(['person', 'cup'])
         ).execute().save_to_file(path=output_path).get_report())
     else:
         # Video detect.
         file_name = '../resources/videos/video_rua01.mp4'
         print(VideoObjectsDetect(
-            file_name=file_name, output_path=output_path, config=YoloConfig(labels, config, weights),
-            hiper_params=YoloHiperParams(), video_params=YoloVideoParams(codec=VideoCodec.MP4, fps=60),
+            file_name=file_name,
+            output_path=output_path,
+            config=YoloConfig(labels, config, weights),
+            hiper_params=YoloHiperParams(),
+            video_params=YoloVideoParams(codec=VideoCodec.MP4, fps=60),
             report=FactoryReport.LABELS_TO_COUNT.new_instance([])
         ).execute().get_report())
